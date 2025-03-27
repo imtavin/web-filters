@@ -1,0 +1,42 @@
+body {
+    background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+}
+
+h2 {
+    color: #333;
+}
+
+form {
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+input[type="file"], select {
+    width: 100%;
+}
+
+.btn {
+    width: 100%;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    border: 3px solid #ddd;
+    padding: 5px;
+    background: white;
+    border-radius: 10px;
+}
+
+.navbar {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-success{
+    margin-bottom: 10px;
+}
