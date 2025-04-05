@@ -1,59 +1,52 @@
 import os
-from flask import Flask, request, render_template, redirect, send_file
+import uuid
+import json
+from flask import Flask, request, render_template, jsonify
 from werkzeug.utils import secure_filename
-from utils import filters
+from utils import filters 
 
-UPLOAD_FOLDER = './static/upload'
-TEMPLATE_FOLDER = './template'
+app = Flask(__name__)
 
-app = Flask(__name__, template_folder=TEMPLATE_FOLDER)
+UPLOAD_FOLDER = 'static/upload'
+RESULT_FOLDER = 'static/results'
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(RESULT_FOLDER, exist_ok=True)
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['RESULT_FOLDER'] = RESULT_FOLDER
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/', methods=['GET', 'POST'])
-def upload_file():
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            return 'there is no file in form!'
-        file = request.files['file']
-        filename = secure_filename(file.filename)
-        path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(path)
+@app.route('/apply', methods=['POST'])
+def apply():
+    if 'file' not in request.files:
+        return jsonify({'error': 'Nenhum arquivo enviado'}), 400
 
-        filter_request = request.form['filter']
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'Nenhum arquivo selecionado'}), 400
 
-        if filter_request == 'gray':
-            filter_path = filters.gray(path) 
-            return render_template('index.html', filename=filter_path)
+    filename = secure_filename(file.filename)
+    img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(img_path)
 
-        if filter_request == 'blur':
-            filter_path = filters.blur(path) 
-            return render_template('index.html', filename=filter_path)
-        
-        if filter_request == 'thresholding':
-            filter_path = filters.thresholding(path) 
-            return render_template('index.html', filename=filter_path)
-        
-        if filter_request == 'erode':
-            filter_path = filters.erode(path) 
-            return render_template('index.html', filename=filter_path)
-        
-        if filter_request == 'dilate':
-            filter_path = filters.dilate(path) 
-            return render_template('index.html', filename=filter_path)
-        
-        if filter_request == 'open':
-            filter_path = filters.open(path) 
-            return render_template('index.html', filename=filter_path)
-        
-        if filter_request == 'close':
-            filter_path = filters.close(path) 
-            return render_template('index.html', filename=filter_path)
+    filter_list = json.loads(request.form.get('filters', '[]'))  # Renomeado para filter_list
 
-    return render_template('index.html')
+    result_filename = f"{uuid.uuid4().hex}.png"
+    result_path = os.path.join(app.config['RESULT_FOLDER'], result_filename)
+
+    filters.apply_filters(img_path, filter_list, result_path)  # Usando filter_list
+
+    return jsonify({'image_url': f'/static/results/{result_filename}'})
+
+@app.route('/export', methods=['POST'])
+def export():
+    filters_data = request.json.get("filters", [])
+    code = filters.generate_code(filters_data)
+    return jsonify({"code": code})
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

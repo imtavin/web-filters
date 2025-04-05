@@ -1,74 +1,113 @@
 import cv2
 import numpy as np
 
+def apply_filters(image_path, filters, output_path):
+    img = cv2.imread(image_path)
 
-WRITE_PATH = 'static/filters/image.png'
-DOWNLOAD_PATH = 'filters/image.png'
+    for f in filters:
+        name = f.get("name")
+        params = f.get("params", {})
 
-def gray(path):
-    # Carregar imagem colorida
-    img_color = cv2.imread(path)
-    gray_image = cv2.cvtColor(img_color, cv2.COLOR_BGR2GRAY)
+        if name == "gray":
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    cv2.imwrite(WRITE_PATH, gray_image)
+        elif name == "blur":
+            k = int(params.get("ksize", 5))
+            img = cv2.GaussianBlur(img, (k, k), 0)
 
-    return DOWNLOAD_PATH
+        elif name == "threshold":
+            thresh = int(params.get("thresh", 127))
+            maxval = int(params.get("maxval", 255))
+            _, img = cv2.threshold(img, thresh, maxval, cv2.THRESH_BINARY)
+
+        elif name == "erode":
+            k = int(params.get("kernel", 3))
+            iterations = int(params.get("iterations", 1))
+            kernel = np.ones((k, k), np.uint8)
+            img = cv2.erode(img, kernel, iterations=iterations)
+
+        elif name == "dilate":
+            k = int(params.get("kernel", 3))
+            iterations = int(params.get("iterations", 1))
+            kernel = np.ones((k, k), np.uint8)
+            img = cv2.dilate(img, kernel, iterations=iterations)
+
+        elif name == "open":
+            k = int(params.get("kernel", 3))
+            kernel = np.ones((k, k), np.uint8)
+            img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
+
+        elif name == "close":
+            k = int(params.get("kernel", 3))
+            kernel = np.ones((k, k), np.uint8)
+            img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+
+        elif name == "canny":
+            t1 = int(params.get("threshold1", 100))
+            t2 = int(params.get("threshold2", 200))
+            img = cv2.Canny(img, t1, t2)
+
+        elif name == "invert":
+            img = cv2.bitwise_not(img)
+
+    # Salva a imagem final
+    cv2.imwrite(output_path, img)
 
 
-def blur(path):
-    # Carregar imagem colorida
-    img_color = cv2.imread(path)
-    blurred_img = cv2.GaussianBlur(img_color, (5, 5), 0)
+def generate_code(filters):
+    lines = [
+        "import cv2",
+        "import numpy as np",
+        "",
+        "img = cv2.imread('sua_imagem.png')"
+    ]
 
-    cv2.imwrite(WRITE_PATH, blurred_img)
+    for f in filters:
+        name = f.get("name")
+        params = f.get("params", {})
 
-    return DOWNLOAD_PATH
+        if name == "gray":
+            lines.append("img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)")
 
-def thresholding(path):
-    # Carregar imagem colorida
-    img_color = cv2.imread(path)
-    _ , thresh_img = cv2.threshold(img_color, 120, 255, cv2.THRESH_TOZERO)
+        elif name == "blur":
+            k = int(params.get("ksize", 5))
+            lines.append(f"img = cv2.GaussianBlur(img, ({k}, {k}), 0)")
 
-    cv2.imwrite(WRITE_PATH, thresh_img)
+        elif name == "threshold":
+            thresh = int(params.get("thresh", 127))
+            maxval = int(params.get("maxval", 255))
+            lines.append(f"_, img = cv2.threshold(img, {thresh}, {maxval}, cv2.THRESH_BINARY)")
 
-    return DOWNLOAD_PATH
+        elif name == "erode":
+            k = int(params.get("kernel", 3))
+            iterations = int(params.get("iterations", 1))
+            lines.append(f"kernel = np.ones(({k}, {k}), np.uint8)")
+            lines.append(f"img = cv2.erode(img, kernel, iterations={iterations})")
 
-def erode(path):
-    # Carregar imagem colorida
-    img_color = cv2.imread(path)
-    kernel = np.ones((5, 5), np.uint8) 
-    erosion_img = cv2.erode(img_color, kernel, iterations=1) 
+        elif name == "dilate":
+            k = int(params.get("kernel", 3))
+            iterations = int(params.get("iterations", 1))
+            lines.append(f"kernel = np.ones(({k}, {k}), np.uint8)")
+            lines.append(f"img = cv2.dilate(img, kernel, iterations={iterations})")
 
-    cv2.imwrite(WRITE_PATH, erosion_img)
+        elif name == "open":
+            k = int(params.get("kernel", 3))
+            lines.append(f"kernel = np.ones(({k}, {k}), np.uint8)")
+            lines.append("img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)")
 
-    return DOWNLOAD_PATH
+        elif name == "close":
+            k = int(params.get("kernel", 3))
+            lines.append(f"kernel = np.ones(({k}, {k}), np.uint8)")
+            lines.append("img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)")
 
-def dilate(path):
-    # Carregar imagem colorida
-    img_color = cv2.imread(path)
-    kernel = np.ones((5, 5), np.uint8) 
-    dilation_img = cv2.dilate(img_color, kernel, iterations=1) 
+        elif name == "canny":
+            t1 = int(params.get("threshold1", 100))
+            t2 = int(params.get("threshold2", 200))
+            lines.append(f"img = cv2.Canny(img, {t1}, {t2})")
 
-    cv2.imwrite(WRITE_PATH, dilation_img)
+        elif name == "invert":
+            lines.append("img = cv2.bitwise_not(img)")
 
-    return DOWNLOAD_PATH
+    lines.append("cv2.imwrite('output.png', img)")
 
-def open(path):
-    # Carregar imagem colorida
-    img_color = cv2.imread(path)
-    kernel = np.ones((3, 3), np.uint8) 
-    opening_img = cv2.morphologyEx(img_color, cv2.MORPH_OPEN, kernel, iterations=1) 
-
-    cv2.imwrite(WRITE_PATH, opening_img)
-
-    return DOWNLOAD_PATH
-
-def close(path):
-    # Carregar imagem colorida
-    img_color = cv2.imread(path)
-    kernel = np.ones((3, 3), np.uint8) 
-    closing_img = cv2.morphologyEx(img_color, cv2.MORPH_CLOSE, kernel, iterations=1) 
-
-    cv2.imwrite(WRITE_PATH, closing_img)
-
-    return DOWNLOAD_PATH
+    return '\n'.join(lines)
