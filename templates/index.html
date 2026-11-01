@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenCV Playground | Filtros de Imagem</title>
+    <title>OpenCV Playground Premium | Todos os Filtros</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <i class="bi bi-camera-fill me-2"></i>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-camera-retro me-2"></i>
                 <span>OpenCV Playground</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -24,7 +24,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="https://opencv.org" target="_blank">
-                            <i class="bi bi-box-arrow-up-right me-1"></i> OpenCV Docs
+                            <i class="fas fa-book me-1"></i> Documentação
                         </a>
                     </li>
                 </ul>
@@ -32,109 +32,283 @@
         </div>
     </nav>
 
-    <div class="container mb-5">
+    <div class="container-fluid">
         <div class="row">
-            <!-- Painel de Controle -->
-            <div class="col-lg-4 mb-4">
-                <div class="card filter-card h-100">
-                    <div class="card-header py-3">
-                        <h5 class="m-0 font-weight-bold">
-                            <i class="bi bi-sliders me-2"></i>Painel de Controle
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Upload de Imagem -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">1. Carregar Imagem</label>
-                            <div class="input-group">
+            <!-- Sidebar -->
+            <div class="col-lg-3 col-md-4 p-0">
+                <div class="sidebar p-3">
+                    <!-- Upload de Imagem -->
+                    <div class="card filter-card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-upload me-2"></i>Carregar Imagem
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
                                 <input type="file" class="form-control" id="fileInput" accept="image/*">
-                                <button class="btn btn-outline-secondary" type="button" id="clearImage">
-                                    <i class="bi bi-x-lg"></i>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-sm btn-outline-danger" id="clearImage">
+                                    <i class="fas fa-trash me-1"></i> Limpar
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" id="sampleImage">
+                                    <i class="fas fa-image me-1"></i> Exemplo
                                 </button>
                             </div>
-                            <div class="form-text">Formatos suportados: JPG, PNG, BMP</div>
                         </div>
-                        
-                        <!-- Filtros -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">2. Selecionar Filtros</label>
-                            <div class="d-flex flex-wrap gap-2 mb-3" id="filterButtons">
-                                <!-- Filtros serão adicionados via JavaScript -->
-                            </div>
-                            
-                            <div id="filterParamsContainer">
-                                <!-- Parâmetros dos filtros serão injetados aqui -->
-                            </div>
-                            
-                            <button class="btn btn-sm btn-outline-primary w-100 mt-2" id="addFilterBtn">
-                                <i class="bi bi-plus-circle me-1"></i> Adicionar Filtro
-                            </button>
+                    </div>
+                    
+                    <!-- Filtros Aplicados -->
+                    <div class="card filter-card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-sliders-h me-2"></i>Filtros Aplicados</span>
+                            <span class="badge bg-primary rounded-pill" id="filterCount">0</span>
                         </div>
-                        
-                        <!-- Ações -->
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-primary" id="applyFiltersBtn">
-                                <i class="bi bi-magic me-1"></i> Aplicar Filtros
-                            </button>
-                            <button class="btn btn-success" id="exportCodeBtn">
-                                <i class="bi bi-code-square me-1"></i> Exportar Código Python
-                            </button>
-                            <button class="btn btn-outline-danger" id="resetAllBtn">
-                                <i class="bi bi-arrow-counterclockwise me-1"></i> Reiniciar
-                            </button>
+                        <div class="card-body">
+                            <div id="appliedFiltersContainer">
+                                <p class="text-muted placeholder-text">Nenhum filtro aplicado</p>
+                            </div>
+                            <div class="d-grid mt-2">
+                                <button class="btn btn-sm btn-outline-danger" id="clearFiltersBtn">
+                                    <i class="fas fa-broom me-1"></i> Limpar Filtros
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Categorias de Filtros -->
+                    <div class="card filter-card">
+                        <div class="card-header">
+                            <i class="fas fa-filter me-2"></i>Biblioteca de Filtros
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="nav nav-tabs" id="filterTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="color-tab" data-bs-toggle="tab" data-bs-target="#color" type="button" role="tab">
+                                        <i class="fas fa-palette"></i>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="morph-tab" data-bs-toggle="tab" data-bs-target="#morph" type="button" role="tab">
+                                        <i class="fas fa-expand"></i>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="edge-tab" data-bs-toggle="tab" data-bs-target="#edge" type="button" role="tab">
+                                        <i class="fas fa-border-all"></i>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="transform-tab" data-bs-toggle="tab" data-bs-target="#transform" type="button" role="tab">
+                                        <i class="fas fa-arrows-alt"></i>
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="special-tab" data-bs-toggle="tab" data-bs-target="#special" type="button" role="tab">
+                                        <i class="fas fa-magic"></i>
+                                    </button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="filterTabContent">
+                                <!-- Filtros Básicos -->
+                                <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                                    <div class="filter-option" data-filter="gray">
+                                        <i class="fas fa-moon"></i>
+                                        <span>Escala de Cinza</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="blur">
+                                        <i class="fas fa-blur"></i>
+                                        <span>Desfoque Gaussiano</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="median_blur">
+                                        <i class="fas fa-blur"></i>
+                                        <span>Desfoque Mediano</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="bilateral">
+                                        <i class="fas fa-blur"></i>
+                                        <span>Filtro Bilateral</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="invert">
+                                        <i class="fas fa-adjust"></i>
+                                        <span>Inverter Cores</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Filtros de Cor -->
+                                <div class="tab-pane fade" id="color" role="tabpanel">
+                                    <div class="filter-option" data-filter="hsv">
+                                        <i class="fas fa-palette"></i>
+                                        <span>Converter para HSV</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="lab">
+                                        <i class="fas fa-palette"></i>
+                                        <span>Converter para LAB</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="threshold">
+                                        <i class="fas fa-sliders-h"></i>
+                                        <span>Threshold</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="adaptive_threshold">
+                                        <i class="fas fa-sliders-h"></i>
+                                        <span>Adaptive Threshold</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="histogram_equalization">
+                                        <i class="fas fa-chart-bar"></i>
+                                        <span>Equalização de Histograma</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="clahe">
+                                        <i class="fas fa-chart-bar"></i>
+                                        <span>CLAHE</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Filtros Morfológicos -->
+                                <div class="tab-pane fade" id="morph" role="tabpanel">
+                                    <div class="filter-option" data-filter="erode">
+                                        <i class="fas fa-compress-alt"></i>
+                                        <span>Erosão</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="dilate">
+                                        <i class="fas fa-expand-alt"></i>
+                                        <span>Dilatação</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="opening">
+                                        <i class="fas fa-door-open"></i>
+                                        <span>Abertura</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="closing">
+                                        <i class="fas fa-door-closed"></i>
+                                        <span>Fechamento</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Filtros de Borda -->
+                                <div class="tab-pane fade" id="edge" role="tabpanel">
+                                    <div class="filter-option" data-filter="canny">
+                                        <i class="fas fa-drafting-compass"></i>
+                                        <span>Bordas Canny</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="sobel">
+                                        <i class="fas fa-drafting-compass"></i>
+                                        <span>Sobel</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="laplacian">
+                                        <i class="fas fa-drafting-compass"></i>
+                                        <span>Laplaciano</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Transformações -->
+                                <div class="tab-pane fade" id="transform" role="tabpanel">
+                                    <div class="filter-option" data-filter="rotate">
+                                        <i class="fas fa-redo"></i>
+                                        <span>Rotacionar</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="flip">
+                                        <i class="fas fa-exchange-alt"></i>
+                                        <span>Espelhar</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="resize">
+                                        <i class="fas fa-expand-arrows-alt"></i>
+                                        <span>Redimensionar</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="crop">
+                                        <i class="fas fa-crop"></i>
+                                        <span>Cortar</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Efeitos Especiais -->
+                                <div class="tab-pane fade" id="special" role="tabpanel">
+                                    <div class="filter-option" data-filter="sketch">
+                                        <i class="fas fa-pencil-alt"></i>
+                                        <span>Esboço a Lápis</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="pencil_sketch">
+                                        <i class="fas fa-pencil-alt"></i>
+                                        <span>Desenho a Lápis</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="sepia">
+                                        <i class="fas fa-image"></i>
+                                        <span>Efeito Sépi</span>
+                                    </div>
+                                    <div class="filter-option" data-filter="cartoon">
+                                        <i class="fas fa-paint-brush"></i>
+                                        <span>Efeito Cartoon</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Visualização -->
-            <div class="col-lg-8">
-                <div class="row">
-                    <!-- Imagem Original -->
-                    <div class="col-md-6 mb-4">
-                        <div class="card h-100">
-                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                <h5 class="m-0 font-weight-bold">
-                                    <i class="bi bi-image me-2"></i>Original
-                                </h5>
-                                <span class="badge bg-secondary" id="originalDimensions">0×0</span>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="image-container" id="originalImageContainer">
-                                    <div class="image-placeholder">
-                                        <i class="bi bi-image fs-1"></i>
-                                        <p class="mt-2">Nenhuma imagem carregada</p>
-                                    </div>
-                                </div>
+            <!-- Conteúdo Principal -->
+            <div class="col-lg-9 col-md-8 main-content">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="mb-0">
+                                <i class="fas fa-image me-2"></i>
+                                <span>Editor de Imagem</span>
+                            </h3>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary me-2" id="compareBtn">
+                                    <i class="fas fa-columns me-1"></i> Comparar
+                                </button>
+                                <button class="btn btn-sm btn-primary" id="applyFiltersBtn">
+                                    <i class="fas fa-magic me-1"></i> Aplicar Filtros
+                                </button>
+                                <button class="btn btn-primary" id="exportCodeBtn">
+                                    <i class="fas fa-code me-1"></i> Exportar Código
+                                </button>           
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Imagem Processada -->
-                    <div class="col-md-6 mb-4">
-                        <div class="card h-100">
-                            <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                <h5 class="m-0 font-weight-bold">
-                                    <i class="bi bi-image-fill me-2"></i>Processada
-                                </h5>
-                                <span class="badge bg-secondary" id="processedDimensions">0×0</span>
-                            </div>
-                            <div class="card-body p-0 position-relative">
-                                <div class="loading-overlay" id="loadingOverlay">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Processando...</span>
-                                    </div>
+                </div>
+                
+                <!-- Visualização da Imagem -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-image me-2"></i>
+                                    <span>Visualização</span>
                                 </div>
-                                <div class="image-container" id="processedImageContainer">
-                                    <div class="image-placeholder">
-                                        <i class="bi bi-hourglass-top fs-1"></i>
-                                        <p class="mt-2">Aplique filtros para ver o resultado</p>
+                                <div class="badge bg-secondary" id="imageDimensions">0×0</div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="image-viewer" id="imageViewer">
+                                    <div class="loading-overlay" id="loadingOverlay">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Processando...</span>
+                                        </div>
+                                    </div>
+                                    <div id="originalPlaceholder" class="placeholder-text">
+                                        <i class="fas fa-image fa-4x mb-3"></i>
+                                        <p>Carregue uma imagem para começar</p>
+                                    </div>
+                                    <img id="originalImage" style="display: none;">
+                                    <img id="processedImage" style="display: none;">
+                                    <div class="compare-slider" style="display: none;"></div>
+                                    <div class="zoom-controls" style="display: none;">
+                                        <button class="zoom-btn" id="zoomInBtn">
+                                            <i class="fas fa-search-plus"></i>
+                                        </button>
+                                        <button class="zoom-btn" id="zoomOutBtn">
+                                            <i class="fas fa-search-minus"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                             <div class="card-footer text-end" id="downloadSection" style="display: none;">
                                 <button class="btn btn-sm btn-success" id="downloadBtn">
-                                    <i class="bi bi-download me-1"></i> Baixar Imagem
+                                    <i class="fas fa-download me-1"></i> Baixar Imagem
                                 </button>
                             </div>
                         </div>
@@ -142,32 +316,55 @@
                 </div>
                 
                 <!-- Código Gerado -->
-                <div class="card mb-4" id="codeCard" style="display: none;">
-                    <div class="card-header py-3">
-                        <h5 class="m-0 font-weight-bold">
-                            <i class="bi bi-file-earmark-code me-2"></i>Código OpenCV Gerado
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="code-block" id="generatedCode">
-                            // O código aparecerá aqui após exportar
+                <div class="row" id="codeSection" style="display: none;">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-code me-2"></i>
+                                    <span>Código OpenCV</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-primary me-2" id="copyCodeBtn">
+                                        <i class="fas fa-copy me-1"></i> Copiar
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" id="downloadCodeBtn">
+                                        <i class="fas fa-download me-1"></i> Baixar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="code-block">
+                                    <pre id="generatedCode"># O código será gerado aqui após aplicar os filtros</pre>
+                                </div>
+                            </div>
                         </div>
-                        <button class="btn btn-sm btn-primary mt-3" id="copyCodeBtn">
-                            <i class="bi bi-clipboard me-1"></i> Copiar Código
-                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-light py-4 mt-5">
-        <div class="container text-center">
-            <p class="mb-0 text-muted">OpenCV Playground &copy; 2025 | Desenvolvido com Flask e OpenCV</p>
+    <!-- Modal de Parâmetros -->
+    <div class="modal fade" id="filterParamsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterParamsModalTitle">Configurar Filtro</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="filterParamsModalBody">
+                <!-- Parâmetros serão inseridos aqui -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmFilterBtn">Adicionar Filtro</button>
+            </div>
+            </div>
         </div>
-    </footer>
+    </div>      
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </body>
